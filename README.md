@@ -1,7 +1,6 @@
 # FDIROpener<br>
 
-Thank you for using FDIROpener.<br>
-FDIROpener is a portable command-line tool used to pack and unpack files into and out of a single file for easy organization.<br><br>
+FDIROpener is a free and open-source portable command-line tool used to pack and unpack files into and out of a single file for easy organization.<br><br>
 
 # Instructions for Use<br>
 
