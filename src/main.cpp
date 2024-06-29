@@ -35,7 +35,7 @@ std::vector<char> readFileContents(const std::string& filePath) {
 void writeFileContents(const std::string& filePath, const std::vector<char>& contents) {
     std::ofstream file(filePath, std::ios::binary);
     if (!file.is_open()) {
-        throw std::runtime_error("Fatal error opening file " + filePath + ". Stop.");
+        throw std::runtime_error("Fatal error: Failed opening file " + filePath + ". Stop.");
     }
     file.write(contents.data(), contents.size());
 }
@@ -43,32 +43,42 @@ void writeFileContents(const std::string& filePath, const std::vector<char>& con
 void insertFile(std::ofstream& outputFile, const std::string& filePath) {
     std::string fileName = fs::path(filePath).filename().string();
     std::string fileExtension = fs::path(filePath).extension().string();
-    std::vector<char> fileContents = readFileContents(filePath);
+    if (fileExtension == ".fdir") {
+        std::cout << fileName << " was skipped because packing .fdir files is not currently supported.\n";
+    } else if (fileExtension != ".fdir") {
+        std::vector<char> fileContents = readFileContents(filePath);
 
-    outputFile.write(FILE_START.c_str(), FILE_START.size());
+        outputFile.write(FILE_START.c_str(), FILE_START.size());
 
-    outputFile.write(NAME_START.c_str(), NAME_START.size());
-    outputFile.write(fileName.c_str(), fileName.size());
-    outputFile.write(NAME_END.c_str(), NAME_END.size());
+        outputFile.write(NAME_START.c_str(), NAME_START.size());
+        outputFile.write(fileName.c_str(), fileName.size());
+        outputFile.write(NAME_END.c_str(), NAME_END.size());
 
-    outputFile.write(EXT_START.c_str(), EXT_START.size());
-    outputFile.write(fileExtension.c_str(), fileExtension.size());
-    outputFile.write(EXT_END.c_str(), EXT_END.size());
+        outputFile.write(EXT_START.c_str(), EXT_START.size());
+        outputFile.write(fileExtension.c_str(), fileExtension.size());
+        outputFile.write(EXT_END.c_str(), EXT_END.size());
 
-    outputFile.write(CON_START.c_str(), CON_START.size());
-    outputFile.write(fileContents.data(), fileContents.size());
-    outputFile.write(CON_END.c_str(), CON_END.size());
+        outputFile.write(CON_START.c_str(), CON_START.size());
+        outputFile.write(fileContents.data(), fileContents.size());
+        outputFile.write(CON_END.c_str(), CON_END.size());
 
-    outputFile.write(FILE_END.c_str(), FILE_END.size());
+        outputFile.write(FILE_END.c_str(), FILE_END.size());
 
-    std::cout << "Successfully wrote " << fileName << " to FDIR." << std::endl; 
+        std::cout << "Successfully wrote " << fileName << " to FDIR." << std::endl;
+    }
 }
 
 void insertMode(const std::string& inputPath, const std::string& outputFileName) {
     std::string outputFilePath = outputFileName + ".fdir";
-    std::ofstream outputFile(outputFilePath, std::ios::binary);
+
+    std::ios_base::openmode mode = std::ios::binary | std::ios::app;
+    if (!fs::exists(outputFilePath)) {
+        mode = std::ios::binary;
+    }
+
+    std::ofstream outputFile(outputFilePath, mode);
     if (!outputFile.is_open()) {
-        throw std::runtime_error("Fatal error opening output file " + outputFilePath + ". Stop.");
+        throw std::runtime_error("Fatal error: Failed opening file " + outputFilePath);
     }
 
     if (fs::is_directory(inputPath)) {
@@ -80,11 +90,11 @@ void insertMode(const std::string& inputPath, const std::string& outputFileName)
     } else if (fs::is_regular_file(inputPath)) {
         insertFile(outputFile, inputPath);
     } else {
-        throw std::runtime_error("Fatal error invalid input path " + inputPath + ". Stop.");
+        throw std::runtime_error("Fatal error: Invalid input path " + inputPath);
     }
 
     outputFile.close();
-    std::cout << "Successfully inserted all files to " << outputFilePath << std::endl;
+    std::cout << "All files were successfully written to " << outputFilePath << std::endl;
 }
 
 void extractMode(const std::string& inputFilePath, const std::string& outputDir) {
@@ -104,7 +114,7 @@ void extractMode(const std::string& inputFilePath, const std::string& outputDir)
         inputFile.read(&delimiter[0], FILE_START.size());
 
         if (delimiter != FILE_START) {
-            throw std::runtime_error("Invalid FDIR file format: missing [FILE] start delimiter");
+            throw std::runtime_error("Fatal error: Your FDIR may be corrupt. Invalid FDIR file format: missing [FILE] start delimiter");
         }
 
         auto readDelimitedValue = [&inputFile](const std::string& startDelim, const std::string& endDelim) {
@@ -112,7 +122,7 @@ void extractMode(const std::string& inputFilePath, const std::string& outputDir)
             inputFile.read(&startTag[0], startDelim.size());
 
             if (startTag != startDelim) {
-                throw std::runtime_error("Invalid FDIR file format: missing " + startDelim + " start delimiter");
+                throw std::runtime_error("Fatal error: Your FDIR may be corrupt. Invalid FDIR file format: missing " + startDelim + " start delimiter");
             }
 
             std::string value;
@@ -141,7 +151,7 @@ void extractMode(const std::string& inputFilePath, const std::string& outputDir)
         inputFile.read(&endDelimiter[0], FILE_END.size());
 
         if (endDelimiter != FILE_END) {
-            throw std::runtime_error("Invalid FDIR file format: missing [/FILE] end delimiter");
+            throw std::runtime_error("Fatal error: Your FDIR may be corrupt. Invalid FDIR file format: missing [/FILE] end delimiter");
         }
     }
 
