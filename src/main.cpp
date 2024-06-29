@@ -82,7 +82,7 @@ void insertMode(const std::string& inputPath, const std::string& outputFileName)
     }
 
     if (fs::is_directory(inputPath)) {
-        for (const auto& entry : fs::directory_iterator(inputPath)) {
+        for (const auto& entry : fs::recursive_directory_iterator(inputPath)) {
             if (entry.is_regular_file()) {
                 insertFile(outputFile, entry.path().string());
             }
