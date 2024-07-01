@@ -12,10 +12,10 @@ Step 2. Open your terminal or command line and navigate to the directory where t
 Step 3. Run the executable. Depending on what you want to do, you will have to use different arguments.<br><br>
 
 If you want to write files to a .FDIR then use this command:<br>
-`<executable> -i <input file> OR <input folder> -o <fdir name>`<br><br>
+`-i <input file> OR <input folder> -o <fdir name>`<br><br>
 
 If you want to extract files from a .FDIR file then use this command:<br>
-`<executable> -e <.fdir file> -o <output directory>`<br><br>
+`-e <.fdir file> -o <output directory>`<br><br>
 
 
 # Supported Operating Systems:<br>
