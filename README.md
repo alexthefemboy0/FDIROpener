@@ -20,6 +20,5 @@ If you want to extract files from a .FDIR file then use this command:<br>
 
 # Supported Operating Systems:<br>
 
-Windows 32 and 64 bit<br>
+Windows 64 bit<br>
 Linux 64-bit<br>
-MacOS (you'll need to compile the binaries yourself.)
