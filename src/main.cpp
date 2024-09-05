@@ -19,7 +19,7 @@ const std::string CON_END = "[/CON]";
 std::vector<char> readFileContents(const std::string& filePath) {
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
-        throw std::runtime_error("Fatal error opening file " + filePath + ". Stop.");
+        throw std::runtime_error("Fatal error opening file " + filePath);
     }
 
     std::streamsize size = file.tellg();
@@ -27,7 +27,7 @@ std::vector<char> readFileContents(const std::string& filePath) {
 
     std::vector<char> buffer(size);
     if (!file.read(buffer.data(), size)) {
-        throw std::runtime_error("Fatal error reading file " + filePath + ". Stop.");
+        throw std::runtime_error("Fatal error reading file " + filePath);
     }
     return buffer;
 }
@@ -35,16 +35,16 @@ std::vector<char> readFileContents(const std::string& filePath) {
 void writeFileContents(const std::string& filePath, const std::vector<char>& contents) {
     std::ofstream file(filePath, std::ios::binary);
     if (!file.is_open()) {
-        throw std::runtime_error("Fatal error: Failed opening file " + filePath + ". Stop.");
+        throw std::runtime_error("Failed opening file " + filePath);
     }
     file.write(contents.data(), contents.size());
 }
 
 void insertFile(std::ofstream& outputFile, const std::string& filePath) {
-    std::string fileName = fs::path(filePath).filename().string();
-    std::string fileExtension = fs::path(filePath).extension().string();
+    std::string fileName = fs::path(filePath).stem().string();
+    std::string fileExtension = fs::path(filePath).extension().string().substr(1);
     if (fileExtension == ".fdir") {
-        std::cout << fileName << " was skipped because packing .fdir files is not currently supported.\n";
+        std::cout << fileName << " was skipped because packing .fdir files is not currently supported\n";
     } else if (fileExtension != ".fdir") {
         std::vector<char> fileContents = readFileContents(filePath);
 
@@ -64,7 +64,7 @@ void insertFile(std::ofstream& outputFile, const std::string& filePath) {
 
         outputFile.write(FILE_END.c_str(), FILE_END.size());
 
-        std::cout << "Successfully wrote " << fileName << " to FDIR." << std::endl;
+        std::cout << "Successfully wrote " << fileName << " to FDIR" << std::endl;
     }
 }
 
@@ -78,7 +78,7 @@ void insertMode(const std::string& inputPath, const std::string& outputFileName)
 
     std::ofstream outputFile(outputFilePath, mode);
     if (!outputFile.is_open()) {
-        throw std::runtime_error("Fatal error: Failed opening file " + outputFilePath);
+        throw std::runtime_error("Failed opening file " + outputFilePath);
     }
 
     if (fs::is_directory(inputPath)) {
@@ -90,7 +90,7 @@ void insertMode(const std::string& inputPath, const std::string& outputFileName)
     } else if (fs::is_regular_file(inputPath)) {
         insertFile(outputFile, inputPath);
     } else {
-        throw std::runtime_error("Fatal error: Invalid input path " + inputPath);
+        throw std::runtime_error("Invalid input path " + inputPath);
     }
 
     outputFile.close();
@@ -114,7 +114,7 @@ void extractMode(const std::string& inputFilePath, const std::string& outputDir)
         inputFile.read(&delimiter[0], FILE_START.size());
 
         if (delimiter != FILE_START) {
-            throw std::runtime_error("Fatal error: Your FDIR may be corrupt. Invalid FDIR file format: missing [FILE] start delimiter");
+            throw std::runtime_error("Your FDIR may be corrupt. Invalid FDIR file format: missing [FILE] start delimiter");
         }
 
         auto readDelimitedValue = [&inputFile](const std::string& startDelim, const std::string& endDelim) {
@@ -143,8 +143,7 @@ void extractMode(const std::string& inputFilePath, const std::string& outputDir)
         std::string fileExtension = readDelimitedValue(EXT_START, EXT_END);
         std::string fileContents = readDelimitedValue(CON_START, CON_END);
 
-        std::string outputFilePath = (fs::path(outputDir) / fileName).string();
-        std::cout << "Writing to file: " << outputFilePath << std::endl; // Debug output
+        std::string outputFilePath = (fs::path(outputDir) / (fileName + "." + fileExtension)).string();
         writeFileContents(outputFilePath, std::vector<char>(fileContents.begin(), fileContents.end()));
 
         std::string endDelimiter(FILE_END.size(), '\0');
