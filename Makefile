@@ -5,7 +5,7 @@ SRC_DIR = src
 BIN_DIR = bin
 
 .PHONY = clean
-all: $(BIN_DIR)/FDIROpenerLinux $(BIN_DIR)/FDIROpenerWindows.exe
+all: FDIROpenerLinux FDIROpenerWindows
 
 # Build for Linux
 
